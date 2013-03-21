@@ -45,6 +45,9 @@ def forward_backward(obs, states, start_p, trans_m, emit_m, end_stat):
         forward_probs.append(f_0_to_t)
         f_0_to_pre_t = f_0_to_t
 
+    forward_probs = probs_normalize(forward_probs)
+    forward_probs.insert(0, start_p)
+
     # run backward, k required (1 <= k < t)
     # P(Observation_k+1:t | State_k) = sum(P(Observation_k+1 | State_k+1) * P(Observation_k+2:t | State_k+1) * P(State_k+1 | State_k) for all state in timeline k+1)
     backward_probs = []
@@ -53,7 +56,8 @@ def forward_backward(obs, states, start_p, trans_m, emit_m, end_stat):
         b_k_to_t = {}
         for s in states:
             if i == len(obs):
-                #b_k_to_t[s] = trans_m[s][end_state]
+                # here, i = T(the length of the sequence and exceed the max index t-1), 
+                # and then Observation_t:t-1 becomes a null sequence, its probability is 1
                 b_k_to_t[s] = 1.0
             else:
                 # using the recursive formula b_k+1:t = P(Observation_k+1:t | State_k), compute b_k+1:t with b_k+2:t
@@ -62,27 +66,25 @@ def forward_backward(obs, states, start_p, trans_m, emit_m, end_stat):
             
         backward_probs.insert(0, b_k_to_t)
         b_post_k_to_t = b_k_to_t
+
+    backward_probs = probs_normalize(backward_probs)
+    backward_probs.append(dict((s, 1.0) for s in states))
         
     # compute the smoothed probability values
-    scale_num = sum(forward_probs[-1][k] * trans_m[k][end_state] for k in states)
-    posterior = {}
-    for s in states:
-        posterior[s] = [forward_probs[i][s] * backward_probs[i][s] / scale_num for i in xrange(len(obs))]
+    smoothed_probs = []
+    for i in xrange(len(obs)+1):
+        v = dict((s, forward_probs[i][s] * backward_probs[i][s]) for s in states)
+        smoothed_probs.append(v)
 
-    return forward_probs, backward_probs, posterior
+    smoothed_probs = probs_normalize(smoothed_probs)
+
+    return forward_probs, backward_probs, smoothed_probs
 
 
-def normalize(p_list):
-    res = []
-    for p in p_list:
-        s = sum(p.itervalues())
-        res.append(dict((k, v/s) for k, v in p.iteritems()))
-
-    return res
+def probs_normalize(probs):
+    return map(lambda x: dict((k, float(v)/sum(x.itervalues())) for k, v in x.iteritems()), probs)
 
 
 if __name__ == "__main__":
     f, b, s = forward_backward(observations, states, start_probabilities, transition_matrix, emission_matrix, end_state)
-    print normalize(f)
-    print normalize(b)
-    print s
+    print "\n".join(map(str, (f, b, s)))

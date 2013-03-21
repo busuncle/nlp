@@ -19,7 +19,7 @@ emission_matrix = {
 }
 
 
-def viterbi(obs, stat, start_p, trans_m, emit_m):
+def viterbi(obs, states, start_p, trans_m, emit_m):
     """
     the two to-be-fill matrix, one contains optimal probability, 
     the other contains optimal state(a backward pointer for constructing the viterbi path)
@@ -40,7 +40,7 @@ def viterbi(obs, stat, start_p, trans_m, emit_m):
     stat_matrix = [{}]
 
     # init start status
-    for s in stat:
+    for s in states:
         prob_matrix[0][s] = start_p[s] * emit_m[s][obs[0]]
         stat_matrix[0][s] = s
 
@@ -49,9 +49,9 @@ def viterbi(obs, stat, start_p, trans_m, emit_m):
         prob_matrix.append({})
         stat_matrix.append({})
 
-        for s in stat:
+        for s in states:
             optimal_prob, optimal_stat = max(
-                [(prob_matrix[t - 1][si] * trans_m[si][s] * emit_m[s][obs[t]], si) for si in stat])
+                [(prob_matrix[t - 1][si] * trans_m[si][s] * emit_m[s][obs[t]], si) for si in states])
             # optimal probability for state s in time t
             prob_matrix[t][s] = optimal_prob
             # backward pointer for optimal_stat
