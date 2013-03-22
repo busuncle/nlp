@@ -6,7 +6,6 @@ the forward-backward algorithm for Hidden Markov Model
 
 
 states = ("s1", "s2")
-end_state = "s2"
 observations = ("o1", "o1", "o2", "o1", "o1")
 start_probabilities = {"s1": 0.5, "s2": 0.5}
 transition_matrix = {
@@ -19,7 +18,7 @@ emission_matrix = {
 }
 
 
-def forward_backward(obs, states, start_p, trans_m, emit_m, end_stat):
+def forward_backward(obs, states, start_p, trans_m, emit_m):
     """
     introduce some param in the formula we use below:
     in general, "t" means a centain point in the timeline, "T" means the length of the timeline.
@@ -86,5 +85,5 @@ def probs_normalize(probs):
 
 
 if __name__ == "__main__":
-    f, b, s = forward_backward(observations, states, start_probabilities, transition_matrix, emission_matrix, end_state)
+    f, b, s = forward_backward(observations, states, start_probabilities, transition_matrix, emission_matrix)
     print "\n".join(map(str, (f, b, s)))
