@@ -63,7 +63,6 @@ def forward_backward(obs, states, start_p, trans_m, emit_m):
         b_post_k_to_t = b_k_to_t
 
     backward_probs = probs_normalize(backward_probs)
-    backward_probs.append(dict((s, 1.0) for s in states))
         
     # compute the smoothed probability values
     smoothed_probs = []
@@ -82,4 +81,5 @@ def probs_normalize(probs):
 
 if __name__ == "__main__":
     f, b, s = forward_backward(observations, states, start_probabilities, transition_matrix, emission_matrix)
+    print "%s\t%s\t%s\n" % (len(f), len(b), len(s))
     print "\n".join(map(str, (f, b, s)))
